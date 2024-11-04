@@ -1,12 +1,16 @@
+Aqui está o README atualizado, incluindo alguns ajustes para refletir melhor as mudanças feitas no código:
+
+---
+
 # Sistema de Detecção de Imagens com YOLO e Envio via API
 
-Este projeto utiliza a biblioteca YOLO para detectar objetos em imagens, com um sistema de filtro de precisão para decidir se as imagens devem ser enviadas para uma API ou armazenadas para treinamento futuro.
+Este projeto utiliza a biblioteca YOLO para detectar objetos em imagens, aplicando um sistema de filtragem baseado na precisão para decidir se as imagens devem ser enviadas para uma API ou armazenadas para treinamento futuro.
 
 ## Funcionalidades
 
 - **Organização de Imagens**: As imagens são movidas para um diretório temporário para facilitar o processamento.
 - **Detecção de Objetos com YOLO**: Processa as imagens com YOLO para detectar uma classe específica de objetos.
-- **Filtragem por Precisão**: Imagens com precisão alta são enviadas para uma API, e as de precisão média são armazenadas para treinamento.
+- **Filtragem por Precisão**: Imagens com alta precisão são enviadas para uma API, enquanto as de precisão média são armazenadas para treinamento.
 - **Envio para API**: As imagens detectadas são enviadas para uma URL especificada.
 
 ## Pré-requisitos
@@ -17,29 +21,34 @@ Este projeto utiliza a biblioteca YOLO para detectar objetos em imagens, com um 
    pip install ultralytics
    ```
 3. **Outras Dependências**:
-   - `opencv-python`: Serve para manipulação de imagens.
-   - `requests`: Utilizado para enviar imagens para a API.
-   - `base64`: Codifica as imagens em base64.
-   - `shutil`: Utilizado para mover arquivos.
-   - `glob`: Serve para encontrar arquivos em um diretório.
+   - `opencv-python-headless`: Para manipulação de imagens.
+   - `requests`: Para enviar imagens para a API.
+   - `base64`: Para codificação de imagens em base64.
+   - `shutil` e `glob`: Para manipulação de arquivos e diretórios.
+
+Instale as dependências restantes com o comando:
+   ```bash
+   pip install opencv-python-headless requests
+   ```
 
 ## Configuração
 
-Para configurar o projeto, defina as seguintes variáveis de ambiente, ou deixe-as com valores padrão:
+Para configurar o projeto, defina as seguintes variáveis de ambiente ou deixe-as com valores padrão. Elas podem ser configuradas diretamente no terminal, em um arquivo `.env`, ou no `Dockerfile`.
 
 ### Variáveis de Diretório
 
-- `BASE_PATH`: Caminho base do projeto (padrão: `C:/Deteccao-Yolo/`).
+- `BASE_PATH`: Caminho base do projeto (padrão: `/app`).
 - `VOLUME_FRAME_PATH`: Caminho para o diretório onde as imagens de entrada são armazenadas (padrão: `BASE_PATH/volumeFrame`).
-- `VOLUME_FRAME_TEMP_PATH`: Diretório temporário onde as imagens para processamento são movidas.
-- `VOLUME_FRAME_TREINAMENTO`: Diretório para armazenar imagens para treinamento futuro (padrão: `BASE_PATH/volumeFrameTreinamento`).
+- `VOLUME_FRAME_TEMP_PATH`: Diretório temporário para armazenar imagens durante o processamento.
+- `VOLUME_FRAME_TREINAMENTO`: Diretório para salvar imagens para treinamento (padrão: `BASE_PATH/volumeFrameTreinamento`).
 - `VOLUME_YOLO`: Caminho para o modelo YOLO treinado (padrão: `BASE_PATH/volumeYolo/best.pt`).
-- `SEND_IMAGE_TO_API_URL`: URL da API para onde as imagens detectadas serão enviadas (padrão: `http://localhost:8080/send/`).
+- `SEND_IMAGE_TO_API_URL`: URL da API para envio das imagens detectadas (padrão: `http://localhost:8080/send/`).
 
 ### Variáveis de Precisão
 
 - `HIGH_PRECISION`: Limite mínimo para alta precisão (padrão: `0.75`).
 - `LOW_PRECISION`: Limite mínimo para precisão média (padrão: `0.5`).
+- `ID_CLASS_TO_DETECT`: ID da classe de objeto a ser detectada (padrão: `0`).
 
 ## Estrutura do Código
 
@@ -67,16 +76,19 @@ Você pode definir as variáveis diretamente no terminal ou em um arquivo `.env`
 ```bash
 export BASE_PATH="C:/Deteccao-Yolo"
 export VOLUME_FRAME_PATH="${BASE_PATH}/volumeFrame"
-export VOLUME_FRAME_TEMP_PATH="${VOLUME_FRAME_PATH}/temp"
 export VOLUME_TREINAMENTO="${BASE_PATH}/volumeFrameTreinamento"
 export VOLUME_YOLO="${BASE_PATH}/volumeYolo/best.pt"
 export SEND_IMAGE_TO_API_URL="http://localhost:8080/send/"
 export HIGH_PRECISION=0.8
 export LOW_PRECISION=0.6
-
+export ID_CLASS_TO_DETECT=0
 ```
 
 ## Observações
 
-- O programa utiliza `threading` para enviar imagens de forma assíncrona, permitindo o processamento de múltiplas imagens simultaneamente.
-- O diretório temporário é removido automaticamente após o processamento.
+- O programa utiliza `threading` para envio assíncrono de imagens, permitindo o processamento paralelo de múltiplas imagens.
+- O diretório temporário é automaticamente removido após o processamento, mantendo o ambiente limpo para futuras execuções.
+
+---
+
+Esse README fornece uma visão detalhada e atualizada do projeto, cobrindo as mudanças realizadas e instruindo sobre a configuração e execução no ambiente Docker.
