@@ -1,10 +1,6 @@
-Aqui está o README atualizado, incluindo alguns ajustes para refletir melhor as mudanças feitas no código:
-
----
-
 # Sistema de Detecção de Imagens com YOLO e Envio via API
 
-Este projeto utiliza a biblioteca YOLO para detectar objetos em imagens, aplicando um sistema de filtragem baseado na precisão para decidir se as imagens devem ser enviadas para uma API ou armazenadas para treinamento futuro.
+Este projeto utiliza a biblioteca YOLO para detectar objetos em imagens, mas adaptando para o caso da Chip será identificado colisões entre dois ou mais veículos, aplicando um sistema de filtragem baseado na precisão para decidir se as imagens devem ser enviadas para uma API ou armazenadas para treinamento futuro.
 
 ## Funcionalidades
 
@@ -84,11 +80,41 @@ export LOW_PRECISION=0.6
 export ID_CLASS_TO_DETECT=0
 ```
 
+### Exemplo de Configuração no Dockerfile
+
+Aqui está um exemplo de Dockerfile com a definição das variáveis de ambiente:
+
+```Dockerfile
+# Escolha a imagem base
+FROM python:3.13
+
+# Instale o OpenCV e YOLO
+RUN pip install opencv-python-headless ultralytics requests
+
+# Define variáveis de ambiente para configuração
+ENV BASE_PATH="/app"
+ENV VOLUME_FRAME_PATH="${BASE_PATH}/volumeFrame"
+ENV VOLUME_FRAME_TREINAMENTO="${BASE_PATH}/volumeFrameTreinamento"
+ENV VOLUME_YOLO="${BASE_PATH}/volumeYolo/best.pt"
+ENV SEND_IMAGE_TO_API_URL="http://localhost:8080/send/"
+ENV HIGH_PRECISION=0.8
+ENV LOW_PRECISION=0.6
+ENV ID_CLASS_TO_DETECT=0
+
+# Cria o diretório de volume de frames
+RUN mkdir -p /app/volumeFrame
+
+# Copie o código para o container
+COPY . /app
+
+# Define o diretório de trabalho
+WORKDIR /app
+
+# Comando para iniciar o sistema
+CMD ["python", "detectionAndAlertSystem.py"]
+```
+
 ## Observações
 
 - O programa utiliza `threading` para envio assíncrono de imagens, permitindo o processamento paralelo de múltiplas imagens.
 - O diretório temporário é automaticamente removido após o processamento, mantendo o ambiente limpo para futuras execuções.
-
----
-
-Esse README fornece uma visão detalhada e atualizada do projeto, cobrindo as mudanças realizadas e instruindo sobre a configuração e execução no ambiente Docker.
