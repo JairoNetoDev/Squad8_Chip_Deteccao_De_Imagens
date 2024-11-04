@@ -10,9 +10,10 @@ import shutil
 import glob
 from ultralytics import YOLO
 
+
 # Definição dos caminhos, com variáveis de ambiente e valores padrão
-BASE_PATH = os.getenv('BASE_PATH', 'C:/Deteccao-Yolo/')
-VOLUME_FRAME_PATH = os.getenv('VOLUME_FRAME', os.path.join(BASE_PATH, 'volumeFrame'))
+BASE_PATH = os.getenv('BASE_PATH', '/app')
+VOLUME_FRAME_PATH = os.getenv('VOLUME_FRAME_PATH', os.path.join(BASE_PATH, 'volumeFrame'))
 VOLUME_FRAME_TEMP_PATH = os.path.join(VOLUME_FRAME_PATH, 'temp')
 VOLUME_FRAME_TREINAMENTO = os.getenv('VOLUME_TREINAMENTO', os.path.join(BASE_PATH, 'volumeFrameTreinamento'))
 VOLUME_YOLO = os.getenv('VOLUME_YOLO', os.path.join(BASE_PATH, 'volumeYolo/best.pt'))
@@ -21,17 +22,12 @@ VOLUME_YOLO = os.getenv('VOLUME_YOLO', os.path.join(BASE_PATH, 'volumeYolo/best.
 HIGH_PRECISION = float(os.getenv('HIGH_PRECISION', 0.75))
 LOW_PRECISION = float(os.getenv('LOW_PRECISION', 0.5))
 SEND_IMAGE_TO_API_URL = os.getenv('SEND_IMAGE_TO_API_URL', 'http://localhost:8080/send/')
+ID_CLASS_TO_DETECT = int(os.getenv('ID_CLASS_TO_DETECT', 0))
 
-# Função para garantir que um diretório exista
-def ensure_directory_exists(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-        print(f"Diretório criado: {path}")
-
-# Validação de todos os diretórios importantes
-ensure_directory_exists(VOLUME_FRAME_PATH)
-ensure_directory_exists(VOLUME_FRAME_TEMP_PATH)
-ensure_directory_exists(VOLUME_FRAME_TREINAMENTO)
+# Cria o diretório temporário para as imagens
+VOLUME_FRAME_TEMP_PATH = os.path.join(VOLUME_FRAME_PATH, 'temp')
+if not os.path.exists(VOLUME_FRAME_TEMP_PATH):
+    os.makedirs(VOLUME_FRAME_TEMP_PATH)
 
 # Mova as imagens para o diretório temporário
 VOLUME_FRAME_IMAGES = os.path.join(VOLUME_FRAME_PATH, '*.png')
@@ -42,9 +38,6 @@ for image in glob.glob(VOLUME_FRAME_IMAGES):
 MODEL = YOLO(VOLUME_YOLO)
 VOLUME_FRAME_TEMP_IMAGES = os.path.join(VOLUME_FRAME_TEMP_PATH, '*.png')
 IMAGES_FROM_MODEL = MODEL(VOLUME_FRAME_TEMP_IMAGES)
-
-# Definição da classe a ser detectada
-ID_CLASS_TO_DETECT = 0
 
 # Definição da classe de imagem
 class Image:
