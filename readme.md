@@ -27,6 +27,8 @@ Este projeto utiliza a biblioteca YOLO para detectar objetos em imagens, com um 
 
 Para configurar o projeto, defina as seguintes variáveis de ambiente, ou deixe-as com valores padrão:
 
+### Variáveis de Diretório
+
 - `BASE_PATH`: Caminho base do projeto (padrão: `C:/Deteccao-Yolo/`).
 - `VOLUME_FRAME_PATH`: Caminho para o diretório onde as imagens de entrada são armazenadas (padrão: `BASE_PATH/volumeFrame`).
 - `VOLUME_FRAME_TEMP_PATH`: Diretório temporário onde as imagens para processamento são movidas.
