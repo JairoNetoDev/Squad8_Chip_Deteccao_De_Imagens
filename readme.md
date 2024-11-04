@@ -57,7 +57,7 @@ Para configurar o projeto, defina as seguintes variáveis de ambiente, ou deixe-
 3. Execute o programa:
 
    ```bash
-   python script.py
+   python detectionAndAlertSystem.py
    ```
 
 ## Exemplo de Configuração de Variáveis de Ambiente
