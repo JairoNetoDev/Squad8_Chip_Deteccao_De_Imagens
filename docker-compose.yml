@@ -1,0 +1,35 @@
+services:
+  frame-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile-frame
+    environment:
+      - LINK_CAMERA=http://host.docker.internal:8080
+      - LARGURA_IMAGEM=1280
+      - ALTURA_IMAGEM=720
+      - FOTOS_SEGUNDO=5
+    volumes:
+      - volume-frame:/app/volumeFrame # Volume compartilhado para as imagens geradas
+    restart: always
+
+  detection-system:
+    build:
+      context: .
+      dockerfile: Dockerfile-detection
+    environment:
+      - LARGURA_IMAGEM=1280
+      - ALTURA_IMAGEM=720
+      - HIGH_PRECISION=0.75
+      - LOW_PRECISION=0.5
+      - ID_CLASS_TO_DETECT=0
+      - SEND_IMAGE_TO_API_URL=http://localhost:8080/send/
+    volumes:
+      - volume-frame:/app/volumeFrame # Volume compartilhado para consumir as imagens geradas
+      - volume-frame-treinamento:/app/volumeFrameTreinamento # Pasta de treinamento
+    restart: always
+    depends_on:
+      - frame-generator
+
+volumes:
+  volume-frame:
+  volume-frame-treinamento:

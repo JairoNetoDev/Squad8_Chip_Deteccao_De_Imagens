@@ -1,0 +1,31 @@
+# Escolha a imagem base
+FROM python:3.12.5
+
+# Instale pacotes com versões específicas
+RUN pip install opencv-python-headless 
+RUN pip install ultralytics==8.3.27
+RUN pip install requests
+
+ENV BASE_PATH = "/app"
+
+ENV LARGURA_IMAGEM=1280
+ENV ALTURA_IMAGEM=720
+
+# URL da API para enviar as imagens processadas
+ENV SEND_IMAGE_TO_API_URL="http://localhost:8080/send/"
+
+# Valores de precisão para detecção YOLO
+ENV HIGH_PRECISION=0.75
+ENV LOW_PRECISION=0.5
+
+# Classe a ser detectada
+ENV ID_CLASS_TO_DETECT=0
+
+# Copie o código para o container
+COPY /app /app
+
+# Defina o diretório de trabalho
+WORKDIR /app
+
+# Execute o código ao iniciar o container
+CMD ["python", "detectionAndAlertSystem.py"]
