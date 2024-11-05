@@ -21,6 +21,8 @@ VOLUME_YOLO = os.getenv('VOLUME_YOLO', os.path.join(BASE_PATH, 'volumeYolo/best.
 # Valores de precisão, obtidos das variáveis de ambiente, com padrão
 HIGH_PRECISION = float(os.getenv('HIGH_PRECISION', 0.75))
 LOW_PRECISION = float(os.getenv('LOW_PRECISION', 0.5))
+LARGURA_IMAGEM = float(os.getenv('LARGURA_IMAGEM', 1280))
+ALTURA_IMAGEM = float(os.getenv('ALTURA_IMAGEM', 720))
 SEND_IMAGE_TO_API_URL = os.getenv('SEND_IMAGE_TO_API_URL', 'http://localhost:8080/send/')
 ID_CLASS_TO_DETECT = int(os.getenv('ID_CLASS_TO_DETECT', 0))
 
@@ -37,7 +39,7 @@ for image in glob.glob(VOLUME_FRAME_IMAGES):
 # Carrega o modelo YOLO
 MODEL = YOLO(VOLUME_YOLO)
 VOLUME_FRAME_TEMP_IMAGES = os.path.join(VOLUME_FRAME_TEMP_PATH, '*.png')
-IMAGES_FROM_MODEL = MODEL(VOLUME_FRAME_TEMP_IMAGES)
+IMAGES_FROM_MODEL = MODEL(VOLUME_FRAME_TEMP_IMAGES, imgz_size=(LARGURA_IMAGEM, ALTURA_IMAGEM))
 
 # Definição da classe de imagem
 class Image:
@@ -58,7 +60,7 @@ def send_image(image_data, file_name, precision):
     image_base64 = base64.b64encode(buffer).decode('utf-8')
 
     payload = {
-        "file_name": file_name,
+        "fileName": file_name,
         "image": image_base64,
         "precision": precision,
     }
@@ -99,11 +101,9 @@ def process_images(images):
                     precision = box.conf.item() if box.conf.nelement() > 0 else 0
 
                     if precision >= HIGH_PRECISION:
-                        print("ENTROU")
                         formatted_image = result.plot()
                         image = Image(file_name, formatted_image, 'high', precision)
                         threading.Thread(target=send_image, args=(image.image, image.name, image.precision)).start()
-                        print("ENVIOU")
 
                     elif LOW_PRECISION <= precision < HIGH_PRECISION:
                         save_original_image_for_training(original_image, file_name)
