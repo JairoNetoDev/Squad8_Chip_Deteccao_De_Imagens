@@ -23,14 +23,21 @@ LARGURA_IMAGEM = float(os.getenv('LARGURA_IMAGEM', 1280))
 ALTURA_IMAGEM = float(os.getenv('ALTURA_IMAGEM', 720))
 SEND_IMAGE_TO_API_URL = os.getenv('SEND_IMAGE_TO_API_URL', 'http://127.0.0.1:5000/upload')
 ID_CLASS_TO_DETECT = int(os.getenv('ID_CLASS_TO_DETECT', 0))
-TIME_TO_SLEEP = 2
+TIME_TO_UPDATE_MODEL = int(os.getenv('TIME_TO_UPDATE_MODEL', 3600))
+TIME_TO_INSERT_INTO_TEMP = int(os.getenv('TIME_TO_INSERT_INTO_TEMP', 2))
 
-# Configuração do Modelo YOLO
-def get_latest_file():
+# Função para obter o modelo mais recente
+def get_latest_best():
     return max([os.path.join(VOLUME_YOLO, f) for f in os.listdir(VOLUME_YOLO)], key=os.path.getctime)
 
-LATEST_VOLUME_YOLO = get_latest_file()
-MODEL = YOLO(LATEST_VOLUME_YOLO)
+# Inicializa o modelo YOLO
+def initialize_model():
+    latest_model_path = get_latest_best()
+    print(f"Carregando o modelo: {latest_model_path}")
+    return YOLO(latest_model_path)
+
+# Inicialização do modelo
+MODEL = initialize_model()
 
 # Funções Utilitárias
 def exists_directory(directory):
@@ -88,6 +95,8 @@ def delete_volume_frame_temp(temp_path):
 
 # Processamento de Imagens
 def process_images():
+    global MODEL  # Garantir que o modelo seja atualizado dentro desta função
+    print(get_latest_best())
     move_images_from_volume_frame_to_temp()
     images = MODEL(os.path.join(VOLUME_FRAME_TEMP_PATH, '*.jpg'))
 
@@ -113,13 +122,17 @@ def process_images():
 
 # Monitoramento de Alterações na Pasta YOLO
 class VolumeYoloHandler(FileSystemEventHandler):
-    def on_modified(self, event):
-        global LATEST_VOLUME_YOLO
-        LATEST_VOLUME_YOLO = get_latest_file()
-
     def on_created(self, event):
-        global LATEST_VOLUME_YOLO
-        LATEST_VOLUME_YOLO = get_latest_file()
+        global MODEL
+        if event.src_path.endswith(".pt"):
+            time.sleep(TIME_TO_UPDATE_MODEL)
+            MODEL = initialize_model() 
+
+    def on_modified(self, event):
+        global MODEL
+        if event.src_path.endswith(".pt"):  
+            time.sleep(TIME_TO_UPDATE_MODEL)  
+            MODEL = initialize_model() 
 
 # Configuração do Observador de Arquivos
 volume_yolo_handler = VolumeYoloHandler()
@@ -132,7 +145,7 @@ try:
     while True:
         if any(file.endswith('.jpg') for file in os.listdir(VOLUME_FRAME_PATH)):
             process_images()
-        time.sleep(TIME_TO_SLEEP)
+        time.sleep(TIME_TO_INSERT_INTO_TEMP)
 except KeyboardInterrupt:
     observer.stop()
 observer.join()
