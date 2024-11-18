@@ -85,7 +85,7 @@ def send_image_to_api(image_data, file_name, precision):
     except requests.exceptions.RequestException as e:
         print(f"Erro ao enviar imagem: {file_name} / Erro: {e}")
 
-def save_original_image_for_training(image_data, file_name):
+def save_image_for_training(image_data, file_name):
     cv2.imwrite(os.path.join(VOLUME_FRAME_TREINAMENTO, file_name), image_data)
 
 def delete_volume_frame_temp(temp_path):
@@ -104,7 +104,8 @@ def process_images():
         boxes = result.boxes
         file_path = result.path
         file_name = os.path.basename(file_path)
-        original_image = result.orig_img
+        formatted_image = result.plot() # Imagem formatada com as labels
+        original_image = result.orig_img # Imagem original sem formatação das labels
 
         if boxes:
             for box in boxes:
@@ -112,11 +113,10 @@ def process_images():
                 if class_id == ID_CLASS_TO_DETECT:
                     precision = box.conf.item() if box.conf.nelement() > 0 else 0
                     if precision >= HIGH_PRECISION:
-                        formatted_image = result.plot()
                         image = Image(file_name, formatted_image, 'high', precision)
                         threading.Thread(target=send_image_to_api, args=(image.image, image.name, image.precision)).start()
                     elif LOW_PRECISION <= precision < HIGH_PRECISION:
-                        threading.Thread(target=save_original_image_for_training, args=(original_image, file_name)).start()
+                        threading.Thread(target=save_image_for_training, args=(formatted_image, file_name)).start()
 
     delete_volume_frame_temp(VOLUME_FRAME_TEMP_PATH)
 
