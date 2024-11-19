@@ -1,120 +1,72 @@
-# Sistema de Detecção de Imagens com YOLO e Envio via API
+# Projeto de Detecção de Imagens
 
-Este projeto utiliza a biblioteca YOLO para detectar objetos em imagens, mas adaptando para o caso da Chip será identificado colisões entre dois ou mais veículos, aplicando um sistema de filtragem baseado na precisão para decidir se as imagens devem ser enviadas para uma API ou armazenadas para treinamento futuro.
+## Descrição do Projeto
+Um projeto desenvolvido pelo Squad 8 para a Chip Tecnologia, proposto pelo Porto Digital e a Universidade Tiradentes.
 
-## Funcionalidades
+## Passos de Instalação e Execução
 
-- **Organização de Imagens**: As imagens são movidas para um diretório temporário para facilitar o processamento.
-- **Detecção de Objetos com YOLO**: Processa as imagens com YOLO para detectar uma classe específica de objetos.
-- **Filtragem por Precisão**: Imagens com alta precisão são enviadas para uma API, enquanto as de precisão média são armazenadas para treinamento.
-- **Envio para API**: As imagens detectadas são enviadas para uma URL especificada.
-
-## Pré-requisitos
-
-1. **Python 3.7** ou superior.
-2. **YOLO**: Instale a biblioteca YOLO utilizando o comando:
-   ```bash
-   pip install ultralytics
-   ```
-3. **Outras Dependências**:
-   - `opencv-python-headless`: Para manipulação de imagens.
-   - `requests`: Para enviar imagens para a API.
-   - `base64`: Para codificação de imagens em base64.
-   - `shutil` e `glob`: Para manipulação de arquivos e diretórios.
-
-Instale as dependências restantes com o comando:
-   ```bash
-   pip install opencv-python-headless requests
-   ```
-
-## Configuração
-
-Para configurar o projeto, defina as seguintes variáveis de ambiente ou deixe-as com valores padrão. Elas podem ser configuradas diretamente no terminal, em um arquivo `.env`, ou no `Dockerfile`.
-
-### Variáveis de Diretório
-
-- `BASE_PATH`: Caminho base do projeto (padrão: `/app`).
-- `VOLUME_FRAME_PATH`: Caminho para o diretório onde as imagens de entrada são armazenadas (padrão: `BASE_PATH/volumeFrame`).
-- `VOLUME_FRAME_TEMP_PATH`: Diretório temporário para armazenar imagens durante o processamento.
-- `VOLUME_FRAME_TREINAMENTO`: Diretório para salvar imagens para treinamento (padrão: `BASE_PATH/volumeFrameTreinamento`).
-- `VOLUME_YOLO`: Caminho para o modelo YOLO treinado (padrão: `BASE_PATH/volumeYolo/best.pt`).
-- `SEND_IMAGE_TO_API_URL`: URL da API para envio das imagens detectadas (padrão: `http://localhost:8080/send/`).
-
-### Variáveis de Precisão
-
-- `HIGH_PRECISION`: Limite mínimo para alta precisão (padrão: `0.75`).
-- `LOW_PRECISION`: Limite mínimo para precisão média (padrão: `0.5`).
-- `ID_CLASS_TO_DETECT`: ID da classe de objeto a ser detectada (padrão: `0`).
-
-## Estrutura do Código
-
-### Principais Componentes
-
-- **Classe `Image`**: Representa uma imagem detectada, contendo o nome, a imagem formatada e a precisão.
-- **Função `send_image`**: Envia a imagem para a API no formato base64.
-- **Função `process_images`**: Processa cada imagem para detectar objetos da classe especificada, aplicando o filtro de precisão.
-- **Função `delete_volume_frame_temp`**: Limpa o diretório temporário após o processamento.
-
-## Executando o Programa
-
-1. Defina as variáveis de ambiente conforme necessário.
-2. Coloque as imagens de entrada no diretório especificado em `VOLUME_FRAME_PATH`.
-3. Execute o programa:
-
-   ```bash
-   python detectionAndAlertSystem.py
-   ```
-
-## Exemplo de Configuração de Variáveis de Ambiente
-
-Você pode definir as variáveis diretamente no terminal ou em um arquivo `.env`:
-
+### Clonando o Repositório
+Para começar, clone o repositório para o seu ambiente local usando o comando:
 ```bash
-export BASE_PATH="C:/Deteccao-Yolo"
-export VOLUME_FRAME_PATH="${BASE_PATH}/volumeFrame"
-export VOLUME_TREINAMENTO="${BASE_PATH}/volumeFrameTreinamento"
-export VOLUME_YOLO="${BASE_PATH}/volumeYolo/best.pt"
-export SEND_IMAGE_TO_API_URL="http://localhost:8080/send/"
-export HIGH_PRECISION=0.8
-export LOW_PRECISION=0.6
-export ID_CLASS_TO_DETECT=0
+git clone <URL_DO_REPOSITORIO>
+cd <NOME_DO_DIRETORIO_CLONADO>
 ```
 
-### Exemplo de Configuração no Dockerfile
-
-Aqui está um exemplo de Dockerfile com a definição das variáveis de ambiente:
-
-```Dockerfile
-# Escolha a imagem base
-FROM python:3.13
-
-# Instale o OpenCV e YOLO
-RUN pip install opencv-python-headless ultralytics requests
-
-# Define variáveis de ambiente para configuração
-ENV BASE_PATH="/app"
-ENV VOLUME_FRAME_PATH="${BASE_PATH}/volumeFrame"
-ENV VOLUME_FRAME_TREINAMENTO="${BASE_PATH}/volumeFrameTreinamento"
-ENV VOLUME_YOLO="${BASE_PATH}/volumeYolo/best.pt"
-ENV SEND_IMAGE_TO_API_URL="http://localhost:8080/send/"
-ENV HIGH_PRECISION=0.8
-ENV LOW_PRECISION=0.6
-ENV ID_CLASS_TO_DETECT=0
-
-# Cria o diretório de volume de frames
-RUN mkdir -p /app/volumeFrame
-
-# Copie o código para o container
-COPY . /app
-
-# Define o diretório de trabalho
-WORKDIR /app
-
-# Comando para iniciar o sistema
-CMD ["python", "detectionAndAlertSystem.py"]
+### Subindo os Contêineres com Docker Compose
+Certifique-se de ter o Docker e o Docker Compose instalados no seu sistema. Em seguida, execute:
+```bash
+docker-compose up --build
 ```
+Isso irá criar e iniciar os três serviços do projeto: **geracao_frame**, **deteccao_e_alerta** e **treinamento_modelo**.
 
-## Observações
+### Variáveis de Ambiente
+As variáveis de ambiente utilizadas pelos serviços são:
 
-- O programa utiliza `threading` para envio assíncrono de imagens, permitindo o processamento paralelo de múltiplas imagens.
-- O diretório temporário é automaticamente removido após o processamento, mantendo o ambiente limpo para futuras execuções.
+#### **Geração de Frame**
+- `PYTHONUNBUFFERED`: Garante que a saída do Python seja exibida imediatamente.
+- `LINK_CAMERA`: URL da câmera conectada ao serviço.
+- `LARGURA_IMAGEM`: Largura dos frames capturados.
+- `ALTURA_IMAGEM`: Altura dos frames capturados.
+- `FOTOS_SEGUNDO`: Número de frames capturados por segundo.
+
+#### **Detecção de Imagens**
+- `PYTHONUNBUFFERED`: Garante que a saída do Python seja exibida imediatamente.
+- `ALTA_PRECISAO`: Limite mínimo para considerar uma detecção como de alta precisão.
+- `BAIXA_PRECISAO`: Limite mínimo para considerar uma detecção como de baixa precisão.
+- `LARGURA_IMAGEM` e `ALTURA_IMAGEM`: Dimensões da imagem processada.
+- `URL_ENVIO_IMAGEM_API`: URL da API para envio das imagens detectadas.
+- `ID_CLASSE_DETECTAR`: ID da classe que será detectada pelo modelo.
+
+#### **Treinamento do Modelo**
+- Não há variáveis de ambiente específicas no momento.
+
+### Estrutura de Volumes
+Os serviços compartilham volumes para armazenamento e comunicação:
+- **`volumeFrame`**: Armazena os frames capturados pelo **Geração de Frame**.
+- **`volumeFrameTreinamento`**: Armazena as imagens que necessitam de mais treinamento, alimentado pelo **Detecção de Imagens**.
+- **`volumeYolo`**: Armazena o modelo treinado (`best.pt`), utilizado pelo serviço de **Detecção de Imagens**.
+
+## Explicação de Cada Código e Funcionalidades
+
+### Geração de Frame
+Este código conecta-se a uma câmera para capturar frames de acordo com as configurações definidas nas variáveis de ambiente. Os frames capturados são armazenados no diretório compartilhado `volumeFrame`, permitindo que outros serviços os utilizem.
+
+### Detecção de Imagens
+Monitora o diretório `volumeFrame` e processa as imagens utilizando o modelo YOLO. O fluxo de trabalho é:
+1. Detecta objetos nas imagens com base no modelo atual.
+2. Para detecções de alta precisão, envia as imagens formatadas para uma API configurada.
+3. Para detecções de baixa precisão, salva as imagens para treinamento no diretório `volumeFrameTreinamento`.
+4. Atualiza automaticamente o modelo YOLO sempre que um novo arquivo `best.pt` é salvo no volume `volumeYolo`.
+
+### Treinamento do Modelo
+Consome imagens do diretório `volumeTreinamento` para treinar o modelo de IA. Após cada execução, salva o modelo mais recente (`best.pt`) no volume `volumeYolo`, permitindo que o serviço de **Detecção de Imagens** utilize a versão atualizada do modelo.
+
+### Fluxo de Integração
+1. O serviço **Geração de Frame** captura imagens e as salva no `volumeFrame`.
+2. O serviço **Detecção de Imagens** processa os frames, enviando-os para uma API ou salvando para treinamento, dependendo da precisão.
+3. O serviço **Treinamento do Modelo** utiliza as imagens do `volumeTreinamento` para treinar o modelo e salvar uma nova versão no `volumeYolo`, que é automaticamente carregada pelo serviço de **Detecção de Imagens**.
+
+## Responsáveis pelo Código
+- **João Victor Melo Fontes Linhares**: Responsável pelo Gerador de Frames.
+- **Jairo Williams Guedes Lopes Neto**: Responsável pela Detecção de Imagens.
+- **Jorge Vitor**: Responsável pelo Treinamento do Modelo.
