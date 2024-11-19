@@ -5,6 +5,10 @@ Um projeto desenvolvido pelo Squad 8 para a Chip Tecnologia, proposto pelo Porto
 
 ## Passos de Instalação e Execução
 
+### Pré-requisitos
+Certifique-se de ter o Docker Desktop instalado no seu sistema. Ele é necessário para gerenciar os contêineres e volumes utilizados pelo projeto. Você pode baixá-lo através do link oficial:  
+[Baixar Docker Desktop](https://www.docker.com/products/docker-desktop/)
+
 ### Clonando o Repositório
 Para começar, clone o repositório para o seu ambiente local usando o comando:
 ```bash
