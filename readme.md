@@ -1,4 +1,4 @@
-# Projeto de Detecção de Imagens
+# Projeto de Detecção de Colisão
 
 ## Descrição do Projeto
 Um projeto desenvolvido pelo Squad 8 para a Chip Tecnologia, proposto pelo Porto Digital e a Universidade Tiradentes.
