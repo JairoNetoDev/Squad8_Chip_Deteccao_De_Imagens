@@ -1,76 +1,123 @@
-# Projeto de Detecção de Colisão
+Aqui está a atualização com os campos de LinkedIn, email e GitHub na seção "Contate-nos":
 
-## Descrição do Projeto
+---
+
+## Projeto de Detecção de Colisão
+
+### Descrição do Projeto
 Um projeto desenvolvido pelo Squad 8 para a Chip Tecnologia, proposto pelo Porto Digital e a Universidade Tiradentes.
 
-## Passos de Instalação e Execução
+---
 
-### Pré-requisitos
+### Passos de Instalação e Execução
+
+#### 1. Pré-requisitos
 Certifique-se de ter o Docker Desktop instalado no seu sistema. Ele é necessário para gerenciar os contêineres e volumes utilizados pelo projeto. Você pode baixá-lo através do link oficial:  
 [Baixar Docker Desktop](https://www.docker.com/products/docker-desktop/)
 
-### Clonando o Repositório
-Para começar, clone o repositório para o seu ambiente local usando o comando:
+#### 2. Clonando o Repositório
+Clone o repositório para o seu ambiente local com o comando:
 ```bash
-git clone <URL_DO_REPOSITORIO>
-cd <NOME_DO_DIRETORIO_CLONADO>
+git clone https://github.com/JairoNetoDev/Squad8_Chip_Deteccao_De_Imagens.git
+```
+Em seguida, entre na pasta clonada:
+```bash
+cd <NOME_DA_PASTA_CLONADA>
 ```
 
-### Subindo os Contêineres com Docker Compose
-Certifique-se de ter o Docker e o Docker Compose instalados no seu sistema. Em seguida, execute:
+#### 3. Configurando Variáveis de Ambiente
+As variáveis de ambiente permitem ajustar o comportamento de cada serviço conforme necessário. Antes de criar os contêineres, você pode personalizá-las no arquivo `docker-compose.yml`.
+
+Exemplo de variáveis configuráveis:
+- URL da câmera (`LINK_CAMERA`) para captura de frames.
+- Dimensões das imagens processadas (`LARGURA_IMAGEM` e `ALTURA_IMAGEM`).
+- Limiares de precisão para detecção de objetos (`ALTA_PRECISAO` e `BAIXA_PRECISAO`).
+
+Veja a seção [Variáveis de Ambiente](#variáveis-de-ambiente) para mais detalhes sobre todas as configurações disponíveis.
+
+#### 4. Subindo os Contêineres
+Após ajustar as configurações, use o Docker Compose para construir e iniciar os serviços. Execute o comando:
 ```bash
 docker-compose up --build
 ```
-Isso irá criar e iniciar os três serviços do projeto: **geracao_frame**, **deteccao_e_alerta** e **treinamento_modelo**.
+
+---
+
+### Visão Geral dos Componentes
+
+#### Geração de Frame
+Conecta-se a uma câmera para capturar frames conforme configurado nas variáveis de ambiente. Os frames são armazenados no volume compartilhado `volumeFrame`.
+
+#### Detecção de Imagens
+Processa os frames armazenados em `volumeFrame` usando o modelo YOLO:
+- **Alta precisão**: Envia as imagens para uma API configurada.
+- **Baixa precisão**: Salva as imagens em `volumeFrameTreinamento` para treinamento futuro.
+- Atualiza automaticamente o modelo YOLO ao detectar mudanças em `volumeYolo`.
+
+#### Treinamento do Modelo
+Treina o modelo YOLO utilizando imagens de `volumeTreinamento` e salva a versão mais recente (`best.pt`) em `volumeYolo`.
+
+---
+
+### Estrutura de Volumes e Integração
+
+1. **`volumeFrame`**: Frames capturados pelo **Geração de Frame**.
+2. **`volumeFrameTreinamento`**: Imagens para treinamento, geradas pelo **Detecção de Imagens**.
+3. **`volumeYolo`**: Modelo YOLO treinado, utilizado e atualizado automaticamente pelo **Detecção de Imagens**.
+
+Fluxo de Integração:
+1. **Geração de Frame** salva frames em `volumeFrame`.
+2. **Detecção de Imagens** processa os frames e salva imagens de baixa precisão em `volumeFrameTreinamento` ou envia as de alta precisão para a API.
+3. **Treinamento do Modelo** consome imagens de `volumeTreinamento`, treina um novo modelo, e salva a versão mais recente em `volumeYolo`.
+
+---
 
 ### Variáveis de Ambiente
-As variáveis de ambiente utilizadas pelos serviços são:
+As variáveis de ambiente podem ser ajustadas conforme necessário para personalizar o comportamento dos serviços:
 
 #### **Geração de Frame**
-- `PYTHONUNBUFFERED`: Garante que a saída do Python seja exibida imediatamente.
-- `LINK_CAMERA`: URL da câmera conectada ao serviço.
-- `LARGURA_IMAGEM`: Largura dos frames capturados.
-- `ALTURA_IMAGEM`: Altura dos frames capturados.
-- `FOTOS_SEGUNDO`: Número de frames capturados por segundo.
+- `PYTHONUNBUFFERED`: Garante saída imediata do Python.
+- `LINK_CAMERA`: URL da câmera.
+- `LARGURA_IMAGEM` e `ALTURA_IMAGEM`: Dimensões dos frames.
+- `FOTOS_SEGUNDO`: Frames por segundo.
 
 #### **Detecção de Imagens**
-- `PYTHONUNBUFFERED`: Garante que a saída do Python seja exibida imediatamente.
-- `ALTA_PRECISAO`: Limite mínimo para considerar uma detecção como de alta precisão.
-- `BAIXA_PRECISAO`: Limite mínimo para considerar uma detecção como de baixa precisão.
-- `LARGURA_IMAGEM` e `ALTURA_IMAGEM`: Dimensões da imagem processada.
-- `URL_ENVIO_IMAGEM_API`: URL da API para envio das imagens detectadas.
-- `ID_CLASSE_DETECTAR`: ID da classe que será detectada pelo modelo.
+- `PYTHONUNBUFFERED`: Garante saída imediata do Python.
+- `ALTA_PRECISAO` e `BAIXA_PRECISAO`: Limites de precisão.
+- `LARGURA_IMAGEM` e `ALTURA_IMAGEM`: Dimensões das imagens.
+- `URL_ENVIO_IMAGEM_API`: URL da API para envio de imagens.
+- `ID_CLASSE_DETECTAR`: Classe alvo para detecção.
 
 #### **Treinamento do Modelo**
-- Não há variáveis de ambiente específicas no momento.
+- Não requer variáveis no momento.
 
-### Estrutura de Volumes
-Os serviços compartilham volumes para armazenamento e comunicação:
-- **`volumeFrame`**: Armazena os frames capturados pelo **Geração de Frame**.
-- **`volumeFrameTreinamento`**: Armazena as imagens que necessitam de mais treinamento, alimentado pelo **Detecção de Imagens**.
-- **`volumeYolo`**: Armazena o modelo treinado (`best.pt`), utilizado pelo serviço de **Detecção de Imagens**.
+---
 
-## Explicação de Cada Código e Funcionalidades
+### Composição do Squad8:
+- **Bruno Souza Lima**
+- **Felliphe Soares dos Santos**
+- **Jairo Williams Guedes Lopes Neto**
+- **João Victor Melo Fontes Linhares**
+- **Jorge Célio do Prado Nascimento Júnior**
+- **Jorge Vitor Silva Gois**
 
-### Geração de Frame
-Este código conecta-se a uma câmera para capturar frames de acordo com as configurações definidas nas variáveis de ambiente. Os frames capturados são armazenados no diretório compartilhado `volumeFrame`, permitindo que outros serviços os utilizem.
+---
 
-### Detecção de Imagens
-Monitora o diretório `volumeFrame` e processa as imagens utilizando o modelo YOLO. O fluxo de trabalho é:
-1. Detecta objetos nas imagens com base no modelo atual.
-2. Para detecções de alta precisão, envia as imagens formatadas para uma API configurada.
-3. Para detecções de baixa precisão, salva as imagens para treinamento no diretório `volumeFrameTreinamento`.
-4. Atualiza automaticamente o modelo YOLO sempre que um novo arquivo `best.pt` é salvo no volume `volumeYolo`.
+### Responsáveis pelo Código
+- **João Victor Melo Fontes Linhares**: [Gerador de Frames](https://github.com/joaovictorlinhares/Squad8_Chip_Gerador_de_Frames).
+- **Jairo Williams Guedes Lopes Neto**: [Detecção de Imagens](https://github.com/JairoNetoDev/Squad8_Chip_Deteccao_De_Imagens).
+- **Jorge Vitor Silva Gois**: [Treinamento do Modelo](https://github.com/jorge159753/Squad8_Chip_Train_model).
 
-### Treinamento do Modelo
-Consome imagens do diretório `volumeTreinamento` para treinar o modelo de IA. Após cada execução, salva o modelo mais recente (`best.pt`) no volume `volumeYolo`, permitindo que o serviço de **Detecção de Imagens** utilize a versão atualizada do modelo.
+---
 
-### Fluxo de Integração
-1. O serviço **Geração de Frame** captura imagens e as salva no `volumeFrame`.
-2. O serviço **Detecção de Imagens** processa os frames, enviando-os para uma API ou salvando para treinamento, dependendo da precisão.
-3. O serviço **Treinamento do Modelo** utiliza as imagens do `volumeTreinamento` para treinar o modelo e salvar uma nova versão no `volumeYolo`, que é automaticamente carregada pelo serviço de **Detecção de Imagens**.
+### Contate-nos
+Se você tiver dúvidas ou precisar de suporte, entre em contato com os membros do Squad8 através das informações a seguir:
 
-## Responsáveis pelo Código
-- **João Victor Melo Fontes Linhares**: Responsável pelo Gerador de Frames.
-- **Jairo Williams Guedes Lopes Neto**: Responsável pela Detecção de Imagens.
-- **Jorge Vitor**: Responsável pelo Treinamento do Modelo.
+| Nome                              | Contato                                                                                                   |
+|-----------------------------------|-----------------------------------------------------------------------------------------------------------|
+| **Bruno Souza Lima**              | [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&style=flat)](https://linkedin.com/in/bruno-souza-lima) [![GitHub](https://img.shields.io/badge/GitHub-gray?logo=github&style=flat)](https://github.com/brunoSL) |
+| **Felliphe Soares dos Santos**    | [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&style=flat)](https://linkedin.com/in/felliphe-soares) [![GitHub](https://img.shields.io/badge/GitHub-gray?logo=github&style=flat)](https://github.com/fellipheS) |
+| **Jairo Williams Guedes Lopes Neto** | [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&style=flat)](https://linkedin.com/in/jairo-neto) [![GitHub](https://img.shields.io/badge/GitHub-gray?logo=github&style=flat)](https://github.com/JairoNetoDev) |
+| **João Victor Melo Fontes Linhares** | [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&style=flat)](https://linkedin.com/in/joaovictorlinhares) [![GitHub](https://img.shields.io/badge/GitHub-gray?logo=github&style=flat)](https://github.com/joaovictorlinhares) |
+| **Jorge Célio do Prado Nascimento Júnior** | [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&style=flat)](https://linkedin.com/in/jorge-celio) [![GitHub](https://img.shields.io/badge/GitHub-gray?logo=github&style=flat)](https://github.com/jorgecelio) |
+| **Jorge Vitor Silva Gois**        | [![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?logo=linkedin&style=flat)](https://linkedin.com/in/jorgevitorgois) [![GitHub](https://img.shields.io/badge/GitHub-gray?logo=github&style=flat)](https://github.com/jorgevgois) |
