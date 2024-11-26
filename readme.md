@@ -1,7 +1,3 @@
-Aqui está a atualização com os campos de LinkedIn, email e GitHub na seção "Contate-nos":
-
----
-
 ## Projeto de Detecção de Colisão
 
 ### Descrição do Projeto
